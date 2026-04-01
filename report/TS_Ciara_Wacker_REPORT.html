@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pairs Trading Strategy — KO/PEP</title>
+<style>
+  :root {
+    --ink: #1a1a2e;
+    --mid: #4a4a6a;
+    --light: #f7f7fb;
+    --rule: #dddde8;
+    --accent: #2c5f8a;
+    --green: #2a7a4b;
+    --red: #8a2c2c;
+    --mono: 'Courier New', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Georgia', serif;
+    font-size: 15px;
+    line-height: 1.75;
+    color: var(--ink);
+    background: #fff;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 60px 40px 80px;
+  }
+
+  /* Header */
+  header {
+    border-top: 3px solid var(--accent);
+    border-bottom: 1px solid var(--rule);
+    padding: 28px 0 22px;
+    margin-bottom: 44px;
+  }
+  header .label {
+    font-family: 'Arial', sans-serif;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 10px;
+  }
+  header h1 {
+    font-size: 26px;
+    font-weight: normal;
+    color: var(--ink);
+    margin-bottom: 6px;
+  }
+  header .meta {
+    font-family: 'Arial', sans-serif;
+    font-size: 13px;
+    color: var(--mid);
+  }
+
+  /* Sections */
+  h2 {
+    font-family: 'Arial', sans-serif;
+    font-size: 13px;
+    font-weight: bold;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--accent);
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 6px;
+    margin: 44px 0 18px;
+  }
+  h3 {
+    font-size: 15px;
+    font-weight: bold;
+    color: var(--ink);
+    margin: 24px 0 8px;
+  }
+
+  p { margin-bottom: 14px; }
+
+  /* Math — inline display */
+  .math {
+    font-family: var(--mono);
+    font-size: 13.5px;
+    background: var(--light);
+    border-left: 3px solid var(--accent);
+    padding: 10px 16px;
+    margin: 16px 0;
+    color: var(--ink);
+    overflow-x: auto;
+  }
+
+  /* Tables */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'Arial', sans-serif;
+    font-size: 13px;
+    margin: 20px 0 28px;
+  }
+  th {
+    background: var(--accent);
+    color: #fff;
+    padding: 8px 12px;
+    text-align: left;
+    font-weight: normal;
+    letter-spacing: 0.5px;
+  }
+  td {
+    padding: 7px 12px;
+    border-bottom: 1px solid var(--rule);
+    color: var(--ink);
+  }
+  tr:nth-child(even) td { background: var(--light); }
+  .good { color: var(--green); font-weight: bold; }
+  .bad  { color: var(--red); }
+  .best { background: #e8f4ee !important; }
+
+  /* Figures */
+  figure {
+    margin: 28px 0 36px;
+    text-align: center;
+  }
+  figure img {
+    width: 100%;
+    max-width: 860px;
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+  }
+  figcaption {
+    font-family: 'Arial', sans-serif;
+    font-size: 12px;
+    color: var(--mid);
+    margin-top: 8px;
+    font-style: italic;
+  }
+
+  /* Callout box */
+  .callout {
+    background: var(--light);
+    border-left: 4px solid var(--accent);
+    padding: 14px 18px;
+    margin: 22px 0;
+    font-family: 'Arial', sans-serif;
+    font-size: 13.5px;
+  }
+  .callout strong { color: var(--accent); }
+
+  /* Two-column stat grid */
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin: 22px 0;
+  }
+  .stat-box {
+    background: var(--light);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    padding: 14px 16px;
+    text-align: center;
+  }
+  .stat-box .val {
+    font-family: 'Arial', sans-serif;
+    font-size: 22px;
+    font-weight: bold;
+    color: var(--accent);
+  }
+  .stat-box .val.green { color: var(--green); }
+  .stat-box .lbl {
+    font-family: 'Arial', sans-serif;
+    font-size: 11px;
+    color: var(--mid);
+    margin-top: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  /* Footer */
+  footer {
+    margin-top: 60px;
+    border-top: 1px solid var(--rule);
+    padding-top: 18px;
+    font-family: 'Arial', sans-serif;
+    font-size: 12px;
+    color: var(--mid);
+  }
+
+  /* Inline code */
+  code {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    background: var(--light);
+    padding: 1px 5px;
+    border-radius: 2px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="label">Quantitative Research</div>
+  <h1>Statistical Arbitrage via Cointegrated Pairs:<br>A Regime-Filtered Approach</h1>
+  <div class="meta">Ciara Mary Wacker &nbsp;·&nbsp; April 2026 &nbsp;·&nbsp; KO / PEP &nbsp;·&nbsp; 2018–2024</div>
+</header>
+
+
+<!-- ================================================================ -->
+<h2>1. Executive Summary</h2>
+
+<p>This note presents a mean-reversion pairs trading strategy applied to Coca-Cola (KO) and PepsiCo (PEP). The strategy exploits a cointegrated price relationship between the two assets, entering positions when the spread deviates significantly from its long-run equilibrium and exiting on reversion. The key contribution beyond a standard Engle-Granger implementation is a set of regime filters — most notably an Ornstein-Uhlenbeck half-life filter — that meaningfully improve risk-adjusted performance out-of-sample.</p>
+
+<div class="callout">
+  <strong>Headline result:</strong> The half-life filtered strategy achieves an annualised Sharpe ratio of <strong>1.26</strong> out-of-sample (March 2022 – January 2024), with a maximum drawdown of <strong>−1.7%</strong>, compared to 0.40 Sharpe and −6.5% drawdown for the unfiltered base strategy. The joint regime (half-life + Hurst) achieves a conditional Sharpe of <strong>2.35</strong> over its 151 active days.
+</div>
+
+<div class="stat-grid">
+  <div class="stat-box"><div class="val green">1.26</div><div class="lbl">Sharpe (HL filter)</div></div>
+  <div class="stat-box"><div class="val green">−1.7%</div><div class="lbl">Max Drawdown</div></div>
+  <div class="stat-box"><div class="val green">2.35</div><div class="lbl">Conditional Sharpe (Joint)</div></div>
+  <div class="stat-box"><div class="val">3.8%</div><div class="lbl">Ann. Return (HL)</div></div>
+  <div class="stat-box"><div class="val">3.0%</div><div class="lbl">Ann. Volatility (HL)</div></div>
+  <div class="stat-box"><div class="val">0.40</div><div class="lbl">Base Sharpe (no filter)</div></div>
+</div>
+
+
+<!-- ================================================================ -->
+<h2>2. Pair Selection and Economic Rationale</h2>
+
+<p>KO and PEP are direct competitors in the global non-alcoholic beverages market. They share exposure to the same input cost dynamics (corn syrup, aluminium, transportation), respond to similar macroeconomic conditions (consumer staples demand, FX), and are subject to comparable regulatory environments. This structural linkage provides an economic basis to expect a long-run equilibrium relationship between their prices — one that is more durable than a correlation-based pair with no fundamental anchor.</p>
+
+<p>The consumer staples sector was selected deliberately: it tends to exhibit more stable cointegrating relationships than cyclical sectors, where earnings dispersion during economic expansions can break price linkages. Crucially, the cointegration hypothesis is tested statistically rather than assumed.</p>
+
+
+<!-- ================================================================ -->
+<h2>3. Methodology</h2>
+
+<h3>3.1 Engle-Granger Cointegration Procedure</h3>
+
+<p>The Engle-Granger two-step procedure tests for and estimates the cointegrating relationship between KO and PEP prices. In Step 1, an OLS regression with intercept is fitted on the training set (January 2018 – March 2022, approximately 70% of the sample):</p>
+
+<div class="math">
+  KO<sub>t</sub> = α + β · PEP<sub>t</sub> + e<sub>t</sub>
+</div>
+
+<p>where α is the intercept, β is the cointegrating weight, and e<sub>t</sub> is the residual spread. In Step 2, the residuals are tested for stationarity using the Augmented Dickey-Fuller (ADF) test. A stationary residual series confirms cointegration — that is, despite both price series being individually I(1) (integrated of order 1), a linear combination exists that is I(0).</p>
+
+<p>An important implementation detail: the full fitted line is subtracted to construct the spread, including the intercept term:</p>
+
+<div class="math">
+  e<sub>t</sub> = KO<sub>t</sub> − α − β · PEP<sub>t</sub>
+</div>
+
+<p>Omitting α produces a spread that is not centred at zero, biasing both the ADF test and the z-score standardisation downstream.</p>
+
+<table>
+  <tr><th>Parameter</th><th>Value</th><th>Notes</th></tr>
+  <tr><td>α (intercept)</td><td>12.097</td><td>Fitted on training set only</td></tr>
+  <tr><td>β (slope)</td><td>0.271</td><td>Cointegrating weight</td></tr>
+  <tr><td>ADF p-value</td><td>0.038</td><td>Significant at 5%; marginal</td></tr>
+  <tr><td>Training period</td><td>Jan 2018 – Mar 2022</td><td>~70% of full sample</td></tr>
+  <tr><td>Test period</td><td>Mar 2022 – Jan 2024</td><td>~30%, fully out-of-sample</td></tr>
+</table>
+
+<p>The ADF p-value of 0.038 is significant at the 5% level but only marginally so, which motivates the regime filtering approach: rather than assuming cointegration holds uniformly throughout the out-of-sample period, the strategy only trades when the spread's statistical properties are actively consistent with mean reversion.</p>
+
+<h3>3.2 Signal Generation</h3>
+
+<p>The spread is standardised into a z-score using the training-set mean and standard deviation, anchoring the signal to in-sample statistics and avoiding look-ahead bias:</p>
+
+<div class="math">
+  z<sub>t</sub> = (e<sub>t</sub> − μ<sub>train</sub>) / σ<sub>train</sub>
+</div>
+
+<p>Trading rules are symmetric around zero. A long-spread position is entered when z &lt; −2.0 (spread too far below equilibrium, expect upward reversion) and a short-spread position when z &gt; +2.0. Positions are closed when z reverts to within ±0.5 of zero. The asymmetric exit band (entry at ±2, exit at ±0.5) prevents premature closure on small oscillations while still capturing the bulk of the reversion move. All signals are lagged by one day before computing returns, eliminating any same-day execution bias.</p>
+
+<h3>3.3 Ornstein-Uhlenbeck Process and Half-Life</h3>
+
+<p>The theoretical foundation for mean-reversion trading is the Ornstein-Uhlenbeck (OU) process. Under the OU assumption, the spread e<sub>t</sub> evolves as:</p>
+
+<div class="math">
+  de<sub>t</sub> = κ(μ − e<sub>t</sub>) dt + σ dW<sub>t</sub>
+</div>
+
+<p>where κ is the speed of mean reversion, μ is the long-run mean, and W<sub>t</sub> is a standard Brownian motion. The half-life of the process — the expected time for a deviation to decay by half — is:</p>
+
+<div class="math">
+  τ<sub>½</sub> = log(2) / κ
+</div>
+
+<p>In discrete time, κ is estimated via AR(1) regression on spread differences:</p>
+
+<div class="math">
+  Δe<sub>t</sub> = ρ · e<sub>t−1</sub> + ε<sub>t</sub> &nbsp;&nbsp;&nbsp; ⟹ &nbsp;&nbsp;&nbsp; τ<sub>½</sub> = −log(2) / ρ
+</div>
+
+<p>where ρ &lt; 0 is required for mean reversion (negative autocorrelation in changes). This is estimated in a rolling 60-day window throughout the test period, producing a time-varying half-life estimate that captures structural shifts in reversion speed.</p>
+
+<h3>3.4 Hurst Exponent</h3>
+
+<p>The Hurst exponent H provides a complementary, model-free measure of mean reversion. It is estimated via the scaling of variance across lags:</p>
+
+<div class="math">
+  E[|e<sub>t+τ</sub> − e<sub>t</sub>|²] ~ τ<sup>2H</sup>
+</div>
+
+<p>H &lt; 0.5 indicates mean reversion; H = 0.5 is a random walk; H &gt; 0.5 is trending. The rolling Hurst exponent is estimated using a log-log regression of standard deviations of lagged differences across lags 2 to 20, using a 60-day window.</p>
+
+<h3>3.5 Regime Filters</h3>
+
+<p>Five regime filters are constructed and evaluated independently and in combination. Each filter produces a binary signal (1 = trade, 0 = avoid) which is lagged by one day and applied to the base position signals:</p>
+
+<table>
+  <tr><th>#</th><th>Regime</th><th>Method</th><th>Threshold</th></tr>
+  <tr><td>1</td><td>Volatility</td><td>Rolling std of spread daily changes</td><td>Above/below rolling median</td></tr>
+  <tr><td>2</td><td>Deviation</td><td>Absolute z-score</td><td>|z| &gt; 1.0</td></tr>
+  <tr><td>3</td><td>Half-life</td><td>OU AR(1), rolling 60-day</td><td>5d ≤ τ½ ≤ 60d</td></tr>
+  <tr><td>4</td><td>Rolling cointegration</td><td>Rolling ADF test, 60-day window</td><td>p-value &lt; 0.10</td></tr>
+  <tr><td>5</td><td>Hurst exponent</td><td>Variance scaling, rolling 60-day</td><td>H &lt; 0.45</td></tr>
+  <tr><td>6</td><td>Joint (HL + Hurst)</td><td>Regimes 3 AND 5 simultaneously active</td><td>Both conditions met</td></tr>
+</table>
+
+
+<!-- ================================================================ -->
+<h2>4. Results</h2>
+
+<h3>4.1 Out-of-Sample Performance</h3>
+
+<table>
+  <tr><th>Strategy</th><th>Sharpe</th><th>Max Drawdown</th><th>Ann. Return</th><th>Ann. Vol</th><th>Active Days</th></tr>
+  <tr><td>Base (no filter)</td><td>0.40</td><td class="bad">−6.5%</td><td>2.9%</td><td>8.0%</td><td>452</td></tr>
+  <tr class="best"><td><strong>Half-life filter</strong></td><td class="good">1.26</td><td class="good">−1.7%</td><td class="good">3.8%</td><td class="good">3.0%</td><td>286</td></tr>
+  <tr class="best"><td><strong>HL + Hurst (joint)</strong></td><td class="good">1.26</td><td class="good">−1.7%</td><td class="good">3.8%</td><td class="good">3.0%</td><td>286</td></tr>
+  <tr><td>Hurst only</td><td>0.36</td><td class="bad">−6.5%</td><td>1.7%</td><td>5.2%</td><td>244</td></tr>
+  <tr><td>Vol filter</td><td>0.09</td><td class="bad">−6.5%</td><td>0.4%</td><td>6.7%</td><td>211</td></tr>
+  <tr><td>Deviation filter</td><td>0.22</td><td class="bad">−6.5%</td><td>1.4%</td><td>7.6%</td><td>180</td></tr>
+  <tr><td>Rolling cointegration</td><td class="bad">−0.30</td><td class="bad">−6.5%</td><td class="bad">−1.0%</td><td>3.3%</td><td>65</td></tr>
+</table>
+
+<figure>
+  <img src="figures/cumulative.png" alt="Cumulative returns across all regime filters">
+  <figcaption>Figure 1. Out-of-sample cumulative returns for all regime-filtered strategies. The half-life and joint filters (green) substantially outperform the base strategy, with all gains concentrated in the October 2022 dislocation period.</figcaption>
+</figure>
+
+<h3>4.2 Regime-Conditional Analysis</h3>
+
+<p>The table below shows Sharpe ratios within each regime state — that is, performance on days when the regime is active versus inactive. A useful filter should show materially higher Sharpe when active than when inactive.</p>
+
+<table>
+  <tr><th>Regime</th><th>Active Days</th><th>Sharpe (Active)</th><th>Inactive Days</th><th>Sharpe (Inactive)</th></tr>
+  <tr class="best"><td><strong>Half-life</strong></td><td>286</td><td class="good"><strong>+1.705</strong></td><td>166</td><td class="bad">−0.249</td></tr>
+  <tr class="best"><td><strong>Joint (HL + Hurst)</strong></td><td>151</td><td class="good"><strong>+2.354</strong></td><td>301</td><td class="bad">−0.185</td></tr>
+  <tr><td>Hurst</td><td>244</td><td>+0.655</td><td>208</td><td>+0.163</td></tr>
+  <tr><td>Volatility</td><td>211</td><td>+0.206</td><td>241</td><td>+0.705</td></tr>
+  <tr><td>Deviation</td><td>180</td><td>+0.365</td><td>272</td><td>+0.805</td></tr>
+  <tr><td>Rolling cointegration</td><td>65</td><td>+0.219</td><td>387</td><td>+0.443</td></tr>
+</table>
+
+<p>The half-life regime is the most discriminating filter: active-state Sharpe of 1.705 against inactive-state Sharpe of −0.249. The joint regime tightens this further to a conditional Sharpe of 2.354. In contrast, the volatility and deviation filters actively select worse trading conditions — their inactive states outperform their active states, indicating that high volatility and large z-score deviations are risk periods, not opportunity periods, for this strategy.</p>
+
+<h3>4.3 Spread and Z-Score</h3>
+
+<figure>
+  <img src="figures/spread.png" alt="Test spread and z-score">
+  <figcaption>Figure 2. Top: the test-period spread e<sub>t</sub> = KO<sub>t</sub> − α − β·PEP<sub>t</sub>, with the training mean shown in red. The spread starts elevated (above equilibrium) then dislocates sharply downward in Q3 2022 before gradually reverting. Bottom: the z-score standardised using training-set statistics, with ±2.0 entry bands (dashed) and ±0.5 exit bands (dotted).</figcaption>
+</figure>
+
+<p>The z-score plot reveals the strategy's key trade: the spread breaks sharply below −2 in October 2022, triggering a long-spread entry. This corresponds to PEP outperforming KO significantly during the period of broad consumer staples rotation. The spread subsequently reverts through the second half of 2022 and into 2023, generating the majority of the strategy's P&L. The z-score remains within the ±2 bands for most of 2023, resulting in limited trading activity in the later test period.</p>
+
+<h3>4.4 Rolling OU Half-Life and Hurst Exponent</h3>
+
+<figure>
+  <img src="figures/halflife_hurst.png" alt="Rolling half-life and Hurst exponent">
+  <figcaption>Figure 3. Top: rolling 60-day OU half-life with regime bounds at 5 days (red) and 60 days (green). Spikes above 60 days indicate periods of slow or broken mean reversion — correctly identified as periods to avoid. Bottom: rolling Hurst exponent with threshold at 0.45. Values below 0.5 confirm mean-reverting behaviour; periods above 0.5 indicate temporary trending.</figcaption>
+</figure>
+
+<p>The half-life plot shows that for most of the test period the spread reverts with a half-life between 5 and 20 days — well within the tradeable range. The spikes above 60 days occur at two clear points: mid-2022 and late 2023. Both correspond to periods of elevated macro uncertainty (Fed tightening, earnings surprises) where the structural relationship between KO and PEP was temporarily disrupted. The regime filter correctly suppresses trading during these windows.</p>
+
+<p>The Hurst exponent fluctuates around 0.35–0.45 for most of the period, confirming pervasive mean-reverting behaviour in the spread. Excursions above 0.5 — most notably in mid-2022 and mid-2023 — align with the same dislocation periods flagged by the half-life filter, providing independent corroboration.</p>
+
+<div class="callout">
+  <strong>Half-life sensitivity:</strong> The table below shows that the Sharpe is robust across a wide range of upper bounds but collapses when the lower bound is relaxed below 5 days. Allowing half-lives of 3 days or less (i.e. sub-weekly reversion) brings noise trades into the sample and drives Sharpe to −0.09 with a maximum drawdown of −10%. This confirms that the 5-day floor is the critical parameter in the filter.
+</div>
+
+<table>
+  <tr><th>Half-life Range</th><th>Active Days</th><th>Sharpe</th><th>Max Drawdown</th><th>Ann. Return</th></tr>
+  <tr><td class="bad">3 – 30 days</td><td>300</td><td class="bad">−0.09</td><td class="bad">−10.0%</td><td class="bad">−0.6%</td></tr>
+  <tr class="best"><td><strong>5 – 45 days</strong></td><td>272</td><td class="good"><strong>1.26</strong></td><td class="good">−1.7%</td><td class="good">3.8%</td></tr>
+  <tr class="best"><td><strong>5 – 60 days</strong></td><td>286</td><td class="good"><strong>1.26</strong></td><td class="good">−1.7%</td><td class="good">3.8%</td></tr>
+  <tr class="best"><td><strong>5 – 90 days</strong></td><td>292</td><td class="good"><strong>1.26</strong></td><td class="good">−1.7%</td><td class="good">3.8%</td></tr>
+  <tr><td>10 – 60 days</td><td>184</td><td>0.98</td><td>−0.5%</td><td>1.9%</td></tr>
+  <tr><td>10 – 45 days</td><td>170</td><td>0.98</td><td>−0.5%</td><td>1.9%</td></tr>
+</table>
+
+<h3>4.5 Rolling Cointegration Regime</h3>
+
+<figure>
+  <img src="figures/coint_regime.png" alt="Rolling cointegration regime and filtered returns">
+  <figcaption>Figure 4. Top: rolling cointegration regime — periods where a 60-day rolling ADF test confirms stationarity at p &lt; 0.10. The regime is active for only 65 of 452 test days. Bottom: cumulative return of the cointegration-filtered strategy, which loses approximately 2% before going flat.</figcaption>
+</figure>
+
+<p>The rolling cointegration filter produces the worst outcome of all regimes tested — a Sharpe of −0.30 with active periods generating worse returns than inactive ones. This is an important negative result. A passing ADF test in a short rolling window (60 days) is not a leading indicator of good trading conditions; it is often a lagging signal that the spread has recently dislocated significantly enough to appear stationary, which is precisely when entering is most dangerous. The base strategy's marginal ADF p-value of 0.038 on the full training set is a better (though still imperfect) signal of the long-run relationship than any short rolling test.</p>
+
+<h3>4.6 Rolling Sharpe and Market Beta</h3>
+
+<figure>
+  <img src="figures/rolling_sharpe_beta.png" alt="Rolling Sharpe and beta vs S&P 500">
+  <figcaption>Figure 5. Top: rolling 30-day annualised Sharpe ratio. Bottom: rolling 60-day beta of the strategy against the S&P 500.</figcaption>
+</figure>
+
+<p>Two observations from Figure 5 are notable. First, the rolling Sharpe is strongly positive and frequently exceeds 1.0 during the October–December 2022 window — the period of the main trade — before collapsing to near-zero as the spread reverts and the strategy goes flat. This is characteristic of a mean-reversion strategy: returns are episodic rather than steady, clustered around dislocation events rather than distributed uniformly through time.</p>
+
+<p>Second, the rolling beta is consistently negative (ranging from approximately −0.40 to 0.0) during the active trading period. A long KO / short PEP position, which dominated in 2022, effectively hedges broad equity market exposure, as PEP had been outperforming the market. This negative beta is a desirable property for a pairs strategy: the strategy provides diversification relative to a long-only equity portfolio. Beta drifts toward zero in 2023 as positions are closed and the strategy is largely flat.</p>
+
+
+<!-- ================================================================ -->
+<h2>5. Discussion</h2>
+
+<h3>5.1 Why the Half-Life Filter Works</h3>
+
+<p>The half-life filter succeeds because it is directly aligned with the economic mechanism the strategy exploits. A pairs trade earns its return from mean reversion — if reversion is fast, there are many small profitable roundtrips; if slow, capital is tied up in positions that may take months to resolve and are vulnerable to structural breaks. By requiring a half-life of at least 5 days (filtering out noise) and at most 60 days (filtering out broken relationships), the filter selects the window where the OU process is best behaved. The sensitivity analysis confirms this: the 5-day lower bound is the critical parameter, with performance collapsing when sub-weekly half-life trades are included.</p>
+
+<h3>5.2 Why the Rolling Cointegration Filter Fails</h3>
+
+<p>The rolling ADF test is a lagging, not leading, indicator. By the time a 60-day window passes the ADF test, the spread has typically already dislocated — which is exactly when entering a mean-reversion position is most risky, not least. The filter is active for only 65 days out of 452, all concentrated in brief windows of apparent stationarity that proved transient. This illustrates a broader point: statistical confirmation of a regime is not the same as a good entry signal.</p>
+
+<h3>5.3 The Negative Beta and Market Neutrality</h3>
+
+<p>The negative rolling beta (Figure 5) reflects the fact that in 2022, PEP significantly outperformed KO — and the market broadly. A short-PEP position therefore provided a natural hedge to long equity exposure. This is a useful property when presenting the strategy to a portfolio context: during 2022's equity drawdown, the strategy was actively earning positive returns from the short-PEP leg, giving it crisis-alpha characteristics in that specific episode.</p>
+
+<h3>5.4 Limitations and Further Development</h3>
+
+<p><strong>Single pair concentration.</strong> All P&L is derived from one dislocation event (October 2022). A robust implementation would run the same methodology across a universe of pairs simultaneously, reducing concentration risk and smoothing the return distribution.</p>
+
+<p><strong>Marginal cointegration.</strong> An ADF p-value of 0.038 is significant but only barely. A stronger pair — for example XOM/CVX or V/MA — would provide a more stable statistical foundation. The approach generalises straightforwardly to other pairs.</p>
+
+<p><strong>Transaction costs.</strong> No bid-ask spread or market impact is modelled. For a strategy with a median half-life of 10 days and limited trade turnover, costs are unlikely to materially change the conclusions, but a production implementation would need to account for them.</p>
+
+<p><strong>Kalman filter estimation.</strong> The cointegrating weights β and α are fixed at training-set values throughout the test period. An adaptive estimation approach using a Kalman filter would allow the weights to evolve over time, potentially improving stability across structural shifts.</p>
+
+<p><strong>Multivariate extension.</strong> The Johansen procedure allows cointegration testing and estimation across more than two assets simultaneously. A basket of consumer staples — KO, PEP, KDP, MNST — could yield a more stable portfolio spread with richer trading opportunities.</p>
+
+
+<!-- ================================================================ -->
+<h2>6. Numerical Methods Summary</h2>
+
+<table>
+  <tr><th>Method</th><th>Implementation</th><th>Purpose</th></tr>
+  <tr><td>OLS regression</td><td><code>statsmodels.OLS</code></td><td>Engle-Granger Step 1 — estimate α, β</td></tr>
+  <tr><td>Augmented Dickey-Fuller</td><td><code>statsmodels.adfuller</code></td><td>Stationarity test on residual spread</td></tr>
+  <tr><td>Z-score standardisation</td><td>Coded from scratch</td><td>Signal generation, anchored to train stats</td></tr>
+  <tr><td>OU AR(1) half-life</td><td><code>numpy.polyfit</code> on Δe vs e<sub>lag</sub></td><td>Rolling mean-reversion speed estimation</td></tr>
+  <tr><td>Rolling ADF</td><td>60-day sliding window ADF</td><td>Cointegration regime filter</td></tr>
+  <tr><td>Hurst exponent</td><td>Log-log variance scaling over lags 2–20</td><td>Model-free mean-reversion measure</td></tr>
+  <tr><td>Max drawdown</td><td>Coded from scratch on returns subset</td><td>Risk metric, regime-consistent</td></tr>
+  <tr><td>Rolling Sharpe</td><td>30-day annualised, coded from scratch</td><td>Dynamic performance monitoring</td></tr>
+  <tr><td>Rolling beta vs SPX</td><td>60-day rolling cov/var</td><td>Market neutrality assessment</td></tr>
+</table>
+
+
+<!-- ================================================================ -->
+<h2>7. Conclusion</h2>
+
+<p>This study demonstrates that a standard Engle-Granger pairs trading strategy on KO/PEP can be substantially improved by conditioning on the dynamically estimated mean-reversion properties of the spread. The half-life filter — which only permits trading when the OU half-life is between 5 and 60 days — raises the Sharpe ratio from 0.40 to 1.26 out-of-sample, while reducing maximum drawdown from 6.5% to 1.7%. The joint regime (half-life + Hurst) achieves a conditional Sharpe of 2.35 on its 151 active days.</p>
+
+<p>The study also yields a clear negative result: rolling cointegration confirmation is a poor entry signal, with the cointegration-filtered strategy underperforming both the base and all other filtered strategies. This suggests that statistical regime detection is most useful when it measures the economic mechanism directly (speed and strength of reversion) rather than the statistical test that motivated the trade in the first place.</p>
+
+<p>The strategy's episodic return profile and negative market beta during 2022 suggest it could serve as a useful complement to a long-only equity book, providing uncorrelated returns during periods of broad equity stress. The natural extension is to a diversified portfolio of cointegrated pairs across consumer staples and other low-turnover sectors, with the half-life filter applied uniformly across the universe.</p>
+
+
+<footer>
+  Ciara Mary Wacker &nbsp;·&nbsp; April 2026 &nbsp;·&nbsp;
+  Data: Yahoo Finance via yfinance &nbsp;·&nbsp;
+  Code: Python 3, pandas, numpy, statsmodels, matplotlib
+</footer>
+
+</body>
+</html>
